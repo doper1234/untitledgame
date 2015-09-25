@@ -6,6 +6,7 @@
 package untitled.game;
 
 import java.awt.Image;
+import java.awt.Rectangle;
 import javax.swing.ImageIcon;
 
 /**
@@ -14,6 +15,7 @@ import javax.swing.ImageIcon;
  */
 public class Entity {
     String picURL = "sprites/";
+    protected String name;
     protected int x;
     protected int y;
     int leftInts = 0;
@@ -31,11 +33,14 @@ public class Entity {
     int backgroundX = 450;
     int backgroundX2 = 0;
     
+    int jumpStartY;
+    
     private boolean isMovingRight = false;
     private boolean isMovingLeft = false;
     private boolean playerIsJumping = false;
     private boolean reachedBoundsMin = false;
     private boolean reachedBoundsMax = false;
+    private boolean jumpStart = false;
             
     
     ImageIcon leftImage;
@@ -96,7 +101,9 @@ public class Entity {
     
     public void jump(){
         playerIsJumping = true;
-        y = y - 5;
+        jumpStart = true;
+        y--;
+        
     }
     
     public void fall(){
@@ -106,6 +113,7 @@ public class Entity {
         }
         
     }
+    
     public void goLeftMap(){
         directionFacing = LEFT;
         if (leftInts % 3 == 1) {
@@ -141,15 +149,15 @@ public class Entity {
             
         }
         rightInts++;
-        if(x < GAME_WIDTH){
+        //if(x < GAME_WIDTH){
         
             x += 3;
             reachedBoundsMax = false;
             //backgroundX+=3;
-        }
-        else{
-            reachedBoundsMax = true;
-        }
+        //}
+//        else{
+//            reachedBoundsMax = true;
+//        }
         isMovingRight = true;
         
         
@@ -211,6 +219,21 @@ public class Entity {
 
     public void goUp() {
 
+        if(jumpStart == true){
+          
+            jumpStartY = y;
+            jumpStart = false;
+        }
+        if((y >= (jumpStartY - 200))){
+          
+            y = y - 5;
+        }
+        else{
+            playerIsJumping = false;
+        }
+        
+        
+        
     }
 
     public void goDown() {
@@ -244,7 +267,7 @@ public class Entity {
         }
         isMovingLeft = false;
         isMovingRight = false;
-        playerIsJumping = false;
+        //playerIsJumping = false;
         
     }
 
@@ -290,6 +313,10 @@ public class Entity {
     public boolean isPlayerMovingRight(){
         return isMovingRight;
     }
+    
+    public boolean isPlayerJumping(){
+        return playerIsJumping;
+    }
     public boolean playerStoppedMoving(){
         
         return isMovingLeft == false && isMovingRight == false;
@@ -303,5 +330,15 @@ public class Entity {
         isMovingLeft = false;
         isMovingRight = false;
         return reachedBoundsMax;
+    }
+    
+    public String getName(){
+        
+        return name;
+    }
+    
+    public Rectangle getBounds(){
+        
+        return new Rectangle(x,y,this.currentImage.getWidth(null), this.currentImage.getHeight(null));
     }
 }

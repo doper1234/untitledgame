@@ -34,6 +34,7 @@ public class Player extends Entity {
         this.x = bomberManX;
         this.y = bomberManY;
         this.directionFacing = directionFacing;
+        
         leftImage = new ImageIcon(getClass().getResource(picURL + "bombermanleftone.png"));
         leftImageMove = new ImageIcon(getClass().getResource(picURL + "bombermanlefttwo.png"));
         leftImageMove2 = new ImageIcon(getClass().getResource(picURL + "bombermanleftthree.png"));
@@ -58,6 +59,7 @@ public class Player extends Entity {
         this.x = bomberManX;
         this.y = bomberManY;
         this.directionFacing = directionFacing;
+        this.name = name;
 
         if (name.equalsIgnoreCase("william")) {
             leftImage = new ImageIcon(getClass().getResource(picURL + "williamermanleftone.png"));

@@ -42,10 +42,10 @@ public class GameFrame {
 
     ArrayList<JButton> buttons;
     final String iP = "192.168.1.104";
-    final int GAME_WIDTH = 500;
-    final int GAME_HEIGHT = 520;
-    final int FRAME_WIDTH = GAME_WIDTH;
-    final int FRAME_HEIGHT = 520;
+    int GAME_WIDTH = 500;
+    int GAME_HEIGHT = 520;
+    int FRAME_WIDTH = GAME_WIDTH;
+    int FRAME_HEIGHT = 520;
     final int missileVelocity = 15;
     boolean host = false;
 
@@ -132,7 +132,7 @@ public class GameFrame {
 
         } else {
             System.out.println("starting new game");
-            game = new UntitledGame("bob");
+            game = new UntitledGame("bob", frame);
             System.out.println("new game created");
             //game.addKeyListener(new UntitledGame.GameKeyListener());
 
@@ -143,8 +143,9 @@ public class GameFrame {
 
         //setButtons(menuScreen);
         frame = new JFrame("My Game");
-        frame.setJMenuBar(menuBar);
-        //frame.setResizable(false);
+        //frame.setJMenuBar(menuBar);
+        frame.setResizable(false);
+        frame.setUndecorated(true);
         frame.setSize(GAME_WIDTH, FRAME_HEIGHT);
         frame.getContentPane().add(mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -751,7 +752,7 @@ public class GameFrame {
                 worldMap.b.goLeftMap();
             }
             if (key == KeyEvent.VK_ENTER && (worldMap.b.getX() == worldMap.levelOneX || worldMap.b.getX() == worldMap.levelTwoX || worldMap.b.getX() == worldMap.levelThreeX)) {
-                game = new UntitledGame(worldMap.characterName);
+                game = new UntitledGame(worldMap.characterName, frame);
                 //game.addKeyListener(new WorldMapKeyListener());
                 mainPanel.add(game);
                 mainPanel.remove(worldMap);
@@ -855,7 +856,7 @@ public class GameFrame {
                     writer.write(characterName + " World 1-1");
                     writer.flush();
 
-                    game = new UntitledGame(characterName);
+                    game = new UntitledGame(characterName, frame);
                     mainPanel.add(game);
                     mainPanel.remove(newGameCharacterSelection);
 
