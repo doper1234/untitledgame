@@ -66,6 +66,11 @@ public class UntitledGame extends JPanel {
     final int DOOR_BOTTOM_MIDDLE = 12;
     final int DOOR_TOP_MIDDLE = 13;
     final int DOOR_TOP = 11;
+    
+    final int DOOR_EXIT_BOTTOM = 15;
+    final int DOOR_EXIT_BOTTOM_MIDDLE = 17;
+    final int DOOR_EXIT_TOP_MIDDLE = 16;
+    final int DOOR_EXIT_TOP = 18;
 
     final int GRID_X = 48;
     final int GRID_Y = 48;
@@ -75,6 +80,9 @@ public class UntitledGame extends JPanel {
 
     int mapX = 0;
     int mapY = 0;
+    int movingX = mapX;
+    int movingY = mapY;
+    int endOfMovingX = -2592;
 
     final int missileVelocity = 5;
     final int chargedShotVelocity = 30;
@@ -87,11 +95,16 @@ public class UntitledGame extends JPanel {
     String characterName;
 
     Player p;
+    Player p2;
     Player emily;
     Player william;
     Player chris;
     Player annie;
     Player dusty;
+    
+    Boss crocBoss;
+    Boss chrisBoss;
+    Boss metroidBoss;
 
     PowerUp willPowerUp;
     PowerUp milkPowerUp;
@@ -106,6 +119,7 @@ public class UntitledGame extends JPanel {
     ArrayList<Entity> players;
 
     int[][] map;
+    int[][] currentMap;
     Image rock = new ImageIcon(getClass().getResource(picURL + "rockb.png")).getImage();
     Image empty = new ImageIcon(getClass().getResource(picURL + "empty.png")).getImage();
     Image metal = new ImageIcon(getClass().getResource(picURL + "metalb.png")).getImage();
@@ -119,6 +133,12 @@ public class UntitledGame extends JPanel {
     Image doorBottomMiddle = new ImageIcon(getClass().getResource(picURL + "doorbottommiddle.png")).getImage();
     Image doorTopMiddle = new ImageIcon(getClass().getResource(picURL + "doortopmiddle.png")).getImage();
     Image doorTop = new ImageIcon(getClass().getResource(picURL + "doortop.png")).getImage();
+    Image doorExitBottom = new ImageIcon(getClass().getResource(picURL + "doorexitbottom.png")).getImage();
+    Image doorExitBottomMiddle = new ImageIcon(getClass().getResource(picURL + "doorexitbottommiddle.png")).getImage();
+    Image doorExitTopMiddle = new ImageIcon(getClass().getResource(picURL + "doorexittopmiddle.png")).getImage();
+    Image doorExitTop = new ImageIcon(getClass().getResource(picURL + "doorexittop.png")).getImage();
+    
+    
 
     Font menuFont = new Font("Bradley Hand ITC", Font.PLAIN, 25);
     Image gameBackground = new ImageIcon(getClass().getResource(picURL + "/SNES - Super Metroid - Backgrounds/Brinstar/Rocks.bmp")).getImage();
@@ -134,19 +154,27 @@ public class UntitledGame extends JPanel {
         System.out.println("lets go");
     }
 
-    public UntitledGame(String characterName, Frame frame) {
+    public UntitledGame(String characterName, Frame frame, String mapLevel, String theme) {
 
+        playSound("leveltheme");
         this.characterName = characterName;
         frame.setSize(frameWidth, frameHeight);
         frame.setLocationRelativeTo(null);
-        p = new Player(GAME_WIDTH / 2, GAME_HEIGHT - (48 * 7), RIGHT, characterName);
-        emily = new Player((GAME_WIDTH / 2) + 100, GAME_HEIGHT - (48 * 3), RIGHT, "emily");
-        william = new Player((GAME_WIDTH / 2) + 50, GAME_HEIGHT - (48 * 3), RIGHT, "william");
-        chris = new Player((GAME_WIDTH / 2) - 50, GAME_HEIGHT - (48 * 3), RIGHT, "chris");
-        annie = new Player((GAME_WIDTH / 2) - 80, GAME_HEIGHT - (48 * 3), RIGHT, "annie");
+//        p = new Player(GAME_WIDTH / 2, GAME_HEIGHT - (48 * 7), RIGHT, characterName);
+//        emily = new Player((GAME_WIDTH / 2) + 100, GAME_HEIGHT - (48 * 3), RIGHT, "emily");
+//        william = new Player((GAME_WIDTH / 2) + 50, GAME_HEIGHT - (48 * 3), RIGHT, "william");
+//        chris = new Player((GAME_WIDTH / 2) - 50, GAME_HEIGHT - (48 * 3), RIGHT, "chris");
+//        annie = new Player((GAME_WIDTH / 2) - 80, GAME_HEIGHT - (48 * 3), RIGHT, "annie");
         dusty = new Player((GAME_WIDTH / 2) + 120, GAME_HEIGHT - (48 * 3), LEFT, "dusty");
+        
+        if(theme.equalsIgnoreCase("norfair")){
+            initializeNorfBlocks();
+        }
+        if(theme.equalsIgnoreCase("end")){
+            initializeEndBlocks();
+        }
 
-        setMap();
+        setMap(mapLevel);
 
         d = new DarkSuit((GAME_WIDTH / 2) - 48, GAME_HEIGHT - (48 * 3));
         c = new Coin((GAME_WIDTH / 2) + 48, GAME_HEIGHT - (48 * 3));
@@ -158,33 +186,57 @@ public class UntitledGame extends JPanel {
         //playSound("mainthemelong");
         addKeyListener(new GameKeyListener());
 
-        players.add(p);
-        players.add(emily);
-        players.add(william);
-        players.add(chris);
-        players.add(annie);
-        players.add(dusty);
-        players.add(d);
+//        players.add(p);
+//        players.add(emily);
+//        players.add(william);
+//        players.add(chris);
+//        players.add(annie);
+//        players.add(dusty);
+//        players.add(d);
 
     }
 
-    public UntitledGame(boolean onlineHost) {
-        iP = JOptionPane.showInputDialog(null, "Enter IP");
-        p = new Player(GAME_WIDTH / 2, GAME_HEIGHT - (48 * 3));
-        d = new DarkSuit((GAME_WIDTH / 2) - 48, GAME_HEIGHT - (48 * 3));
-        c = new Coin((GAME_WIDTH / 2) + 48, GAME_HEIGHT - (48 * 3));
-        missiles = new ArrayList<>();
-        chargedShots = new ArrayList<>();
-        setFocusable(true);
-        requestFocus();
-        //playSound("mainthemelong");
-        addKeyListener(new GameKeyListener());
+    public UntitledGame(String characterName, Frame frame, String mapLevel, String theme, boolean onlineHost, String iP) {
+        this(characterName, frame, mapLevel, theme);
+        this.iP = iP;
+//        p = new Player(GAME_WIDTH / 2, GAME_HEIGHT - (48 * 3));
+//        d = new DarkSuit((GAME_WIDTH / 2) - 48, GAME_HEIGHT - (48 * 3));
+//        c = new Coin((GAME_WIDTH / 2) + 48, GAME_HEIGHT - (48 * 3));
+//        missiles = new ArrayList<>();
+//        chargedShots = new ArrayList<>();
+//        setFocusable(true);
+//        requestFocus();
+//        //playSound("mainthemelong");
+//        addKeyListener(new GameKeyListener());
         host = onlineHost;
         initialSetup = true;
 //            
 
     }
 
+    public void initializeNorfBlocks(){
+        
+    rock = new ImageIcon(getClass().getResource(picURL + "rockc.png")).getImage();
+    empty = new ImageIcon(getClass().getResource(picURL + "empty.png")).getImage();
+    metal = new ImageIcon(getClass().getResource(picURL + "metalc.png")).getImage();
+    pipe = new ImageIcon(getClass().getResource(picURL + "pipec.png")).getImage();
+    pipeEnd = new ImageIcon(getClass().getResource(picURL + "pipeendc.png")).getImage();
+    monsterHead = new ImageIcon(getClass().getResource(picURL + "monsterheadc.png")).getImage();
+    swirlyThing = new ImageIcon(getClass().getResource(picURL + "swirlyc.png")).getImage();
+    backgroundBlock = new ImageIcon(getClass().getResource(picURL + "norfairblock.png")).getImage();
+    }
+    
+    public void initializeEndBlocks() {
+        rock = new ImageIcon(getClass().getResource(picURL + "rockend.png")).getImage();
+        empty = new ImageIcon(getClass().getResource(picURL + "empty.png")).getImage();
+        metal = new ImageIcon(getClass().getResource(picURL + "metalend.png")).getImage();
+        pipe = new ImageIcon(getClass().getResource(picURL + "pipeend.png")).getImage();
+        pipeEnd = new ImageIcon(getClass().getResource(picURL + "pipeendend.png")).getImage();
+        monsterHead = new ImageIcon(getClass().getResource(picURL + "monsterheadend.png")).getImage();
+        swirlyThing = new ImageIcon(getClass().getResource(picURL + "swirlyend.png")).getImage();
+        backgroundBlock = new ImageIcon(getClass().getResource(picURL + "backgroundend.png")).getImage();
+    }
+    
     @Override
     public void paintComponent(Graphics g) {
         //super.paint(g);
@@ -204,30 +256,40 @@ public class UntitledGame extends JPanel {
         for (int i = 0; i < map.length; i++) {
 
             for (int j = 0; j < map.length; j++) {
+                g.drawImage(backgroundBlock, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 if (map[i][j] == ROCK) {
-                    g.drawImage(rock, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(rock, movingX + i * GRID_X, mapY + j * GRID_Y, this);
 
                 } else if (map[i][j] == METAL) {
-                    g.drawImage(metal, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(metal, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 } else if (map[i][j] == PIPE) {
-                    g.drawImage(pipe, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(pipe, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 } else if (map[i][j] == PIPE_END) {
-                    g.drawImage(pipeEnd, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(pipeEnd, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 } else if (map[i][j] == MONSTER_HEAD) {
-                    g.drawImage(monsterHead, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(monsterHead, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 } else if (map[i][j] == SWIRLY_THING) {
-                    g.drawImage(swirlyThing, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(swirlyThing, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 } else if (map[i][j] == DOOR_BOTTOM) {
-                    g.drawImage(doorBottom, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(doorBottom, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 } else if (map[i][j] == DOOR_BOTTOM_MIDDLE) {
-                    g.drawImage(doorBottomMiddle, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(doorBottomMiddle, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 } else if (map[i][j] == DOOR_TOP_MIDDLE) {
-                    g.drawImage(doorTopMiddle, mapX + i * GRID_X, mapY + j * GRID_Y, this);
+                    g.drawImage(doorTopMiddle, movingX + i * GRID_X, mapY + j * GRID_Y, this);
                 } else if (map[i][j] == DOOR_TOP) {
-                    g.drawImage(doorTop, mapX + i * GRID_X, mapY + j * GRID_Y, this);
-                } else {
-                    g.drawImage(backgroundBlock, mapX + i * GRID_X, mapY + j * GRID_Y, this);
-                }
+                    g.drawImage(doorTop, movingX + i * GRID_X, mapY + j * GRID_Y, this);
+                }else if (map[i][j] == DOOR_EXIT_BOTTOM) {
+                    g.drawImage(doorExitBottom, movingX + i * GRID_X, mapY + j * GRID_Y, this);
+                } else if (map[i][j] == DOOR_EXIT_BOTTOM_MIDDLE) {
+                    g.drawImage(doorExitBottomMiddle, movingX + i * GRID_X, mapY + j * GRID_Y, this);
+                } else if (map[i][j] == DOOR_EXIT_TOP_MIDDLE) {
+                    g.drawImage(doorExitTopMiddle, movingX + i * GRID_X, mapY + j * GRID_Y, this);
+                } else if (map[i][j] == DOOR_EXIT_TOP) {
+                    g.drawImage(doorExitTop, movingX + i * GRID_X, mapY + j * GRID_Y, this);
+                } 
+//                else {
+//                    g.drawImage(backgroundBlock, movingX + i * GRID_X, mapY + j * GRID_Y, this);
+//                }
 
             }
         }
@@ -240,6 +302,7 @@ public class UntitledGame extends JPanel {
         }
         super.paint(g);
 
+        //movingX = ((48*6));
         g.drawImage(gameBackground, 0, 0, this);
         //g.drawImage(gameBackground, 450 - p.backgroundX, 0, this);
         //g.drawImage(theseGuys, 0, 0, this);
@@ -253,7 +316,8 @@ public class UntitledGame extends JPanel {
 //        //paintPlayers(g);
 
         drawMap(g);
-        playerGotPowerUp();
+        playerGotPowerUp(g);
+        hitDusty();
 //        if(mapX - frameWidth >= -2592){
 //          
 //            mapXIncrementor = 5;
@@ -273,13 +337,45 @@ public class UntitledGame extends JPanel {
             p.goUp();
         }
 
+        if(crocBoss != null){
+        
+            crocBoss.goLeft();
+            g.drawImage(crocBoss.getCurrentImage(), crocBoss.getX() + movingX, crocBoss.getY(), this);
+        }
+        if(chrisBoss != null){
+            chrisBoss.goLeft();
+            g.drawImage(chrisBoss.getCurrentImage(), chrisBoss.getX() + movingX, chrisBoss.getY(), this);
+        }
+        if(metroidBoss != null){
+            metroidBoss.goLeft();
+            g.drawImage(metroidBoss.getCurrentImage(), metroidBoss.getX() + movingX, metroidBoss.getY(), this);
+        }
+        
         g.drawImage(dusty.getCurrentImage(), dusty.getX(), dusty.getY(), this);
-        g.drawImage(willPowerUp.getCurrentImage(), willPowerUp.getX(), willPowerUp.getY(), this);
-        g.drawImage(milkPowerUp.getCurrentImage(), milkPowerUp.getX(), milkPowerUp.getY(), this);
-        g.drawImage(mommyPowerUp.getCurrentImage(), mommyPowerUp.getX(), mommyPowerUp.getY(), this);
-        g.drawImage(myPowerUp.getCurrentImage(), myPowerUp.getX(), myPowerUp.getY(), this);
-        g.drawImage(dustyPowerUp.getCurrentImage(), dustyPowerUp.getX(), dustyPowerUp.getY(), this);
-        g.drawImage(p.getCurrentImage(), p.getX(), p.getY(), this);
+        
+        if(host == true){
+            
+            if((movingX > (endOfMovingX + frameWidth)) && p.isPlayerMovingRight() && p.getX() >= 48*6){
+                
+                g.drawImage(p.getCurrentImage(), 48*6, p.getY(), this); 
+            }
+                            
+                        
+            else{
+               g.drawImage(p.getCurrentImage(), p.getX() + movingX, p.getY(), this); 
+            }
+            if(p2 != null){
+              
+               g.drawImage(p2.getCurrentImage(), p2.getX() + movingX, p2.getY(), this);
+            }
+            
+        }else{
+            
+            g.drawImage(p.getCurrentImage(), p.getX() + movingX, p.getY(), this);
+            g.drawImage(p2.getCurrentImage(), 48*6, p2.getY(), this);
+        }
+        
+        
 //        g.drawImage(emily.getCurrentImage(), emily.getX(), emily.getY(), this);
 //        g.drawImage(william.getCurrentImage(), william.getX(), william.getY(), this);
 //        g.drawImage(chris.getCurrentImage(), chris.getX(), chris.getY(), this);
@@ -369,16 +465,24 @@ public class UntitledGame extends JPanel {
                     if (canPlayerMoveLeft()) {
                         p.goLeft();
                       // p.setX(p.getX() - mapXIncrementor);
-                        //mapXIncrementor = 1;
-                        //mapX = mapX + mapXIncrementor;
-                        emily.goLeft();
-                        william.goLeft();
-                        chris.goLeft();
-                        annie.goLeft();
+                        mapXIncrementor = 3;
+                        
+                        if(movingX <= 0){
+                            movingX = movingX + mapXIncrementor; 
+                        }
+                        //if (movingX > 0) {
+                           
+                        //}
+                        
+//                        emily.goLeft();
+//                        william.goLeft();
+//                        chris.goLeft();
+//                        annie.goLeft();
                     }
 
                 } else {
                     d.goLeft();
+                    p2.goLeft();
 
                 }
                 if (writerWritingToServer != null) {
@@ -390,18 +494,25 @@ public class UntitledGame extends JPanel {
             if (key == KeyEvent.VK_RIGHT) {
                 if (host == true) {
                     if (canPlayerMoveRight()) {
-                    //mapXIncrementor = 3;
-                        //mapX = mapX - mapXIncrementor; 
+                        mapXIncrementor = 3;
+                        if(movingX > (endOfMovingX + frameWidth) && p.getX() >= 48*6){
+                            movingX = movingX - mapXIncrementor; 
+                        }
                         //p.setX(p.getX() + mapXIncrementor);
                         p.goRight();
-                        emily.goRight();
-                        william.goRight();
-                        chris.goRight();
-                        annie.goRight();
+//                        emily.goRight();
+//                        william.goRight();
+//                        chris.goRight();
+//                        annie.goRight();
                     }
 
                 } else {
+                    mapXIncrementor = 3;
+                        if (movingX < (48*54) - (48-16)) {
+                            movingX = movingX - mapXIncrementor;
+                        }
                     d.goRight();
+                    p2.goRight();
 
                 }
                 if (writerWritingToServer != null) {
@@ -413,7 +524,7 @@ public class UntitledGame extends JPanel {
                 if (host == true) {
 
                     playSound(p.getName() + "aduh");
-                    Missile m = new Missile(p.getX(), p.getY() + 15, p.LEFT);
+                    Missile m = new Missile(48*6, p.getY() + 15, p.LEFT);
                     if (p.getDirectionFacing() == LEFT) {
 
                         m.goLeft(missileVelocity);
@@ -425,8 +536,17 @@ public class UntitledGame extends JPanel {
 
                 } else {
 
+                    playSound(p2.getName() + "aduh");
+                    Missile m = new Missile(48*6, p2.getY() + 15, LEFT);
+                    if (p2.getDirectionFacing() == LEFT) {
+
+                        m.goLeft(missileVelocity);
+                    } else {
+                        m.goRight(missileVelocity);
+                    }
                     ChargedShot cS = new ChargedShot(d.getX(), d.getY(), d.RIGHT);
                     chargedShots.add(cS);
+                    
                 }
                 if (writerWritingToServer != null) {
                     writerWritingToServer.println(KeyEvent.VK_SPACE);
@@ -460,10 +580,10 @@ public class UntitledGame extends JPanel {
             if (key == KeyEvent.VK_LEFT || key == KeyEvent.VK_RIGHT) {
                 if (host == true) {
                     p.stop();
-                    emily.stop();
-                    william.stop();
-                    chris.stop();
-                    annie.stop();
+//                    emily.stop();
+//                    william.stop();
+//                    chris.stop();
+//                    annie.stop();
                     //mapXIncrementor = 0;
                     //mapYIncrementor = 0;
                     //mapYDecrementor = 0;
@@ -516,7 +636,7 @@ public class UntitledGame extends JPanel {
         } else if (movement == 0) {
             p.stop();
         } else if (movement == KeyEvent.VK_SPACE) {
-            Missile m = new Missile(p.getX(), p.getY() + 15, p.LEFT);
+            Missile m = new Missile(p.getX() - movingX, p.getY() + 15, p.LEFT);
             if (p.getDirectionFacing() == LEFT) {
 
                 m.goLeft(missileVelocity);
@@ -524,6 +644,8 @@ public class UntitledGame extends JPanel {
                 m.goRight(missileVelocity);
             }
             missiles.add(m);
+        } else if(movement == KeyEvent.VK_ENTER){
+            p.jump();
         }
     }
 
@@ -531,15 +653,19 @@ public class UntitledGame extends JPanel {
 
         if (movement == KeyEvent.VK_LEFT) {
             d.goLeft();
+            p2.goLeft();
 
         } else if (movement == KeyEvent.VK_RIGHT) {
 
             d.goRight();
+            p2.goRight();
         } else if (movement == 0) {
             d.stop();
+            p2.stop();
         } else if (movement == KeyEvent.VK_SPACE) {
             ChargedShot cS = new ChargedShot(d.getX(), d.getY(), d.RIGHT);
             chargedShots.add(cS);
+            
         }
     }
 
@@ -549,6 +675,18 @@ public class UntitledGame extends JPanel {
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);
             clip.start();
+            
+//            do{
+//              
+//                while
+//                clip.open(audioInputStream);
+//                clip.start();  
+//            }
+//            while(clip.isRunning());
+               
+                
+            
+            
 
         } catch (Exception ex) {
             System.out.println("Error with playing sound.");
@@ -605,12 +743,12 @@ public class UntitledGame extends JPanel {
 
     }
 
-    private void setMap() {
+    private void setMap(String mapLevel) {
         map = new int[54][54];
 
         try {
 
-            BufferedReader reader = new BufferedReader(new FileReader("src/untitled/game/map/map.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader("src/untitled/game/map/map" + mapLevel + ".txt"));
 
             for (int i = 0; i < map.length; i++) {
                 String[] items = reader.readLine().split(" ");
@@ -620,7 +758,13 @@ public class UntitledGame extends JPanel {
                     if (map[j][i] == 9) {
                         p = new Player(mapX + i * GRID_X, mapY + j * GRID_Y, RIGHT, characterName);
                         map[j][i] = 0;
-                    } else if (map[j][i] == 10) {
+                    } 
+                    else if(map[j][i] == 91){
+                       p2 = new Player(mapX + i * GRID_X, mapY + j * GRID_Y, RIGHT, characterName);
+                        map[j][i] = 0; 
+                    }
+                    
+                    else if (map[j][i] == 10) {
 
                         willPowerUp = new PowerUp("will", mapX + j * GRID_X, mapY + i * GRID_Y);
                         map[j][i] = 0;
@@ -636,6 +780,12 @@ public class UntitledGame extends JPanel {
                     } else if (map[j][i] == 50) {
                         dustyPowerUp = new PowerUp("", mapX + j * GRID_X, mapY + i * GRID_Y);
                         map[j][i] = 0;
+                    } else if(map[j][i] == 99){
+                        crocBoss = new Boss("croc", mapX + j * GRID_X, mapY + i * GRID_Y);
+                    }else if(map[j][i] == 101){
+                        chrisBoss = new Boss("chris", mapX + j * GRID_X, mapY + i * GRID_Y);
+                    } else if(map[j][i] == 111){
+                        metroidBoss = new Boss("metroid", mapX + j * GRID_X, mapY + i * GRID_Y );
                     }
                 }
             }
@@ -645,38 +795,77 @@ public class UntitledGame extends JPanel {
         }
 
     }
+    
+    private void refreshMap(){
+       currentMap = new int[17][17];
+       
+    }
 
-    private void playerGotPowerUp() {
+    private void playerGotPowerUp(Graphics g) {
 
+        
         Rectangle pBounds = p.getBounds();
-        Rectangle wBounds = willPowerUp.getBounds();
-        Rectangle eBounds = milkPowerUp.getBounds();
-        Rectangle mBounds = mommyPowerUp.getBounds();
-        Rectangle myBounds = myPowerUp.getBounds();
-        Rectangle dBounds = dustyPowerUp.getBounds();
+        if (willPowerUp != null) {
+            g.drawImage(willPowerUp.getCurrentImage(), willPowerUp.getX() + movingX, willPowerUp.getY(), this);
+            Rectangle wBounds = willPowerUp.getBounds();
+            if (pBounds.intersects(wBounds)) {
 
-        if (pBounds.intersects(wBounds)) {
-
-            p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "william");
-            willPowerUp.setCurrentImage(backgroundBlock);
+                p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "william");
+                willPowerUp.setCurrentImage(backgroundBlock);
+                willPowerUp = null;
+            }
         }
-        if (pBounds.intersects(eBounds)) {
-            p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "emily");
-            milkPowerUp.setCurrentImage(backgroundBlock);
-        }
-        if (pBounds.intersects(mBounds)) {
-            p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "annie");
-            mommyPowerUp.setCurrentImage(backgroundBlock);
-        }
-        if (pBounds.intersects(myBounds)) {
-            p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "chris");
-            myPowerUp.setCurrentImage(backgroundBlock);
-        }
-        if (pBounds.intersects(dBounds)) {
-            p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "dusty");
-            dustyPowerUp.setCurrentImage(backgroundBlock);
+        if (milkPowerUp != null) {
+            g.drawImage(milkPowerUp.getCurrentImage(), milkPowerUp.getX() + movingX, milkPowerUp.getY(), this);
+            Rectangle eBounds = milkPowerUp.getBounds();
+            if (pBounds.intersects(eBounds)) {
+                p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "emily");
+                milkPowerUp.setCurrentImage(backgroundBlock);
+                milkPowerUp = null;
+            }
         }
 
+        if (mommyPowerUp != null) {
+            g.drawImage(mommyPowerUp.getCurrentImage(), mommyPowerUp.getX() + movingX, mommyPowerUp.getY(), this);
+            Rectangle mBounds = mommyPowerUp.getBounds();
+            if (pBounds.intersects(mBounds)) {
+                p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "annie");
+                mommyPowerUp.setCurrentImage(backgroundBlock);
+                mommyPowerUp = null;
+            }
+        }
+        if (myPowerUp != null) {
+            g.drawImage(myPowerUp.getCurrentImage(), myPowerUp.getX() + movingX, myPowerUp.getY(), this);
+            Rectangle myBounds = myPowerUp.getBounds();
+            if (pBounds.intersects(myBounds)) {
+                p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "chris");
+                myPowerUp.setCurrentImage(backgroundBlock);
+                myPowerUp = null;
+            }
+        }
+        if (dustyPowerUp != null) {
+            g.drawImage(dustyPowerUp.getCurrentImage(), dustyPowerUp.getX() + movingX, dustyPowerUp.getY(), this);
+            Rectangle dBounds = dustyPowerUp.getBounds();
+            if (pBounds.intersects(dBounds)) {
+                p = new Player(p.getX(), p.getY(), p.getDirectionFacing(), "dusty");
+                dustyPowerUp.setCurrentImage(backgroundBlock);
+                dustyPowerUp = null;
+            }
+        }
+        
+    }
+    
+    private void hitDusty(){
+        
+        for(Missile m: missiles){
+           Rectangle dustyBounds = dusty.getBounds(); 
+           Rectangle missileBounds = m.getBounds(); 
+           if(missileBounds.intersects(dustyBounds)){
+               dusty.setCurrentImage(empty);
+           }
+        }
+        
+        
     }
 
 }

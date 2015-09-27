@@ -15,7 +15,7 @@ import javax.swing.ImageIcon;
  */
 public class Entity {
     String picURL = "sprites/";
-    protected String name;
+    protected String name = "bob";
     protected int x;
     protected int y;
     int leftInts = 0;
@@ -85,14 +85,14 @@ public class Entity {
             
         }
         leftInts++;
-        if(x > 3){
+        //if(x > 3){
            x -= 3; 
            //backgroundX-=3;
            reachedBoundsMin = false;
-        }
-        else{
-            reachedBoundsMin = true;
-        }
+        //}
+        //else{
+            //reachedBoundsMin = true;
+        //}
             
         isMovingLeft = true;
         
@@ -216,6 +216,33 @@ public class Entity {
         x  = x -(1* velocity);
         
     }
+    
+    public void goLeft(int velocity, int imageFrequency){
+        
+        directionFacing = LEFT;
+        if (leftInts % 3 == 0) {
+
+            currentImage = leftImage.getImage();
+            
+        } else if (leftInts % 3 == 1) {
+            currentImage = leftImageMove2.getImage();
+            
+        } else if (leftInts % 3 == 2) {
+            currentImage = leftImageMove.getImage();
+            
+        }
+        leftInts++;
+        if(x > 3){
+           x = x - velocity; 
+           //backgroundX-=3;
+           reachedBoundsMin = false;
+        }
+        else{
+            reachedBoundsMin = true;
+        }
+            
+        isMovingLeft = true;
+    }
 
     public void goUp() {
 
@@ -224,7 +251,7 @@ public class Entity {
             jumpStartY = y;
             jumpStart = false;
         }
-        if((y >= (jumpStartY - 200))){
+        if((y >= (jumpStartY - 150))){
           
             y = y - 5;
         }

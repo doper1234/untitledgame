@@ -10,6 +10,8 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -132,7 +134,7 @@ public class GameFrame {
 
         } else {
             System.out.println("starting new game");
-            game = new UntitledGame("bob", frame);
+            game = new UntitledGame("bob", frame, "1-1", "no theme");
             System.out.println("new game created");
             //game.addKeyListener(new UntitledGame.GameKeyListener());
 
@@ -145,7 +147,7 @@ public class GameFrame {
         frame = new JFrame("My Game");
         //frame.setJMenuBar(menuBar);
         frame.setResizable(false);
-        frame.setUndecorated(true);
+        //frame.setUndecorated(true);
         frame.setSize(GAME_WIDTH, FRAME_HEIGHT);
         frame.getContentPane().add(mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -339,7 +341,18 @@ public class GameFrame {
         }
 
         public void startGame(boolean host) {
-            game = new UntitledGame(host);
+            Socket s;
+            String iP = "fuck you";
+            try {
+                s = new Socket("google.com", 80);
+                iP = (s.getLocalAddress().getHostAddress());
+                s.close();
+            } catch (IOException ex) {
+                //Logger.getLogger(GameFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println(iP);
+            //String iP = JOptionPane.showInputDialog(null, "Enter IP");
+            game = new UntitledGame("bob", frame, "1-1", "no theme", host, iP);
             //game.addKeyListener(new GameKeyListener());
             mainPanel.add(game);
             mainPanel.remove(menu);
@@ -752,7 +765,14 @@ public class GameFrame {
                 worldMap.b.goLeftMap();
             }
             if (key == KeyEvent.VK_ENTER && (worldMap.b.getX() == worldMap.levelOneX || worldMap.b.getX() == worldMap.levelTwoX || worldMap.b.getX() == worldMap.levelThreeX)) {
-                game = new UntitledGame(worldMap.characterName, frame);
+                if(worldMap.b.getX() == worldMap.levelOneX){
+                   game = new UntitledGame(worldMap.characterName, frame, "1-1", "no theme"); 
+                } else if (worldMap.b.getX() == worldMap.levelTwoX){
+                   game = new UntitledGame(worldMap.characterName, frame, "1-2", "norfair"); 
+                }else if (worldMap.b.getX() == worldMap.levelThreeX){
+                   game = new UntitledGame(worldMap.characterName, frame, "1-3", "end"); 
+                }
+                
                 //game.addKeyListener(new WorldMapKeyListener());
                 mainPanel.add(game);
                 mainPanel.remove(worldMap);
@@ -856,7 +876,7 @@ public class GameFrame {
                     writer.write(characterName + " World 1-1");
                     writer.flush();
 
-                    game = new UntitledGame(characterName, frame);
+                    game = new UntitledGame(characterName, frame, "1-1", "no theme");
                     mainPanel.add(game);
                     mainPanel.remove(newGameCharacterSelection);
 
